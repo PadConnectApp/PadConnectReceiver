@@ -50,7 +50,7 @@ compose.desktop {
             appResourcesRootDir.set(project.layout.projectDirectory.dir("src/jvmMain/resources"))
             targetFormats(TargetFormat.Msi, TargetFormat.Deb, TargetFormat.AppImage, TargetFormat.Rpm)
             packageName = "PadConnectReceiver"
-            packageVersion = "1.0.0"
+            packageVersion = "0.4.0"
 
             windows {
                 console = true
