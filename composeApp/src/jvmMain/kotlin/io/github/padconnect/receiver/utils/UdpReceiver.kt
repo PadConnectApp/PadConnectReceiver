@@ -1,40 +1,37 @@
 
 package io.github.padconnect.receiver.utils
 
-import java.net.DatagramPacket
-import java.net.DatagramSocket
-import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.nio.channels.DatagramChannel
 
 class UdpReceiver(
-    port: Int,
+    val port: Int,
     private val onEvent: (Int, Short, Short, Short, Short, Byte, Byte) -> Unit
 ) {
-    private val socket = DatagramSocket(null).apply {
-        reuseAddress = true
-        bind(InetSocketAddress(port))
-    }
-
-    @Volatile
-    private var senderAddress: InetAddress? = null
-    @Volatile
-    private var senderPort: Int? = null
+    val channel: DatagramChannel = DatagramChannel.open()
 
     @Volatile
     private var isLatencyFeatureEnabled = false
     @Volatile
     private var isRumbleFeatureEnabled = false
 
+    @Volatile
+    var currentSender: InetSocketAddress? = null
+
     fun start() {
         Thread {
-            val buffer = ByteArray(21)
-            val packet = DatagramPacket(buffer, buffer.size)
+            channel.configureBlocking(true)
+            channel.bind(InetSocketAddress(port))
 
-            while (!socket.isClosed) {
-                socket.receive(packet)
-                val bb = ByteBuffer.wrap(packet.data, 0, packet.length).order(ByteOrder.LITTLE_ENDIAN)
+            val bb = ByteBuffer.allocateDirect(21).order(ByteOrder.LITTLE_ENDIAN)
+
+            while (channel.isOpen) {
+                bb.clear()
+                val sender = channel.receive(bb) as? InetSocketAddress ?: continue
+                bb.flip()
+
                 val type = bb.get().toInt()
 
                 if (type == 0) {
@@ -47,11 +44,12 @@ class UdpReceiver(
                         bb.get(),         // lt
                         bb.get()          // rt
                     )
-                    if (senderAddress != packet.address || senderPort != packet.port) {
-                        senderAddress = packet.address
-                        senderPort = packet.port
+
+                    if (sender != currentSender) {
+                        currentSender = sender
                     }
-                    if (isLatencyFeatureEnabled) senderAddress?.let { sendLatency(bb.long) }
+
+                    if (isLatencyFeatureEnabled) sendLatency(bb.long)
                 }
             }
         }.apply {
@@ -62,33 +60,38 @@ class UdpReceiver(
         }
     }
 
-    fun onRumble(large: Int, small: Int) {
-        if (senderAddress == null || !isRumbleFeatureEnabled) return
-        val buf = ByteArray(3)
-        buf[0] = 1 // type = rumble
-        buf[1] = large.toByte()
-        buf[2] = small.toByte()
+    private val rumbleBuffer = ByteBuffer.allocateDirect(3)
 
-        val packet = DatagramPacket(buf, buf.size, senderAddress, senderPort!!)
-        socket.send(packet)
+    fun onRumble(large: Int, small: Int) {
+        val targetAddress = currentSender
+        if (targetAddress == null || !isRumbleFeatureEnabled) return
+
+        synchronized(rumbleBuffer) {
+            rumbleBuffer.clear()
+
+            rumbleBuffer.put(1.toByte())
+            rumbleBuffer.put(large.toByte())
+            rumbleBuffer.put(small.toByte())
+
+            rumbleBuffer.flip()
+
+            channel.send(rumbleBuffer, targetAddress)
+        }
     }
 
-    fun sendLatency(sentTime: Long) {
-        val responseBuffer = ByteBuffer.allocate(17)
-            .order(ByteOrder.LITTLE_ENDIAN)
+    private val responseBuffer = ByteBuffer.allocateDirect(17).order(ByteOrder.LITTLE_ENDIAN)
 
-        responseBuffer.put(2) // type = latency
+    fun sendLatency(sentTime: Long) {
+        val targetAddress = currentSender ?: return
+        responseBuffer.clear()
+
+        responseBuffer.put(2)
         responseBuffer.putLong(sentTime)
         responseBuffer.putLong(System.nanoTime())
 
-        val responsePacket = DatagramPacket(
-            responseBuffer.array(),
-            17,
-            senderAddress,
-            senderPort!!
-        )
+        responseBuffer.flip()
 
-        socket.send(responsePacket)
+        channel.send(responseBuffer, targetAddress)
     }
 
     fun setEnabledFeatures(features: Int) {
@@ -97,6 +100,6 @@ class UdpReceiver(
     }
 
     fun stop() {
-        socket.close()
+        channel.close()
     }
 }
