@@ -1,0 +1,12 @@
+[package]
+name = "padconnect-receiver"
+version = "1.0.0"
+edition = "2024"
+
+[dependencies]
+slint = "1.9"
+byteorder = "1.5"
+crossbeam-channel = "0.5"
+
+[target.'cfg(target_os = "windows")'.dependencies]
+vigem-client = "0.1.4"
