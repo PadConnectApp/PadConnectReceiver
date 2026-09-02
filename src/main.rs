@@ -45,6 +45,7 @@ slint::slint! {
 
     export component ReceiverScreen inherits Window {
         title: "PadConnectReceiver";
+        icon: @image-url("icons/icon.ico");
         preferred-width: 480px;
         preferred-height: 380px;
         background: #1a1a1a;

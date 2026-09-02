@@ -4,7 +4,7 @@ version = "1.0.0-rc1"
 edition = "2024"
 
 [dependencies]
-slint = "1.9"
+slint = { version = "1.9", features = ["image-default-formats"] }
 byteorder = "1.5"
 crossbeam-channel = "0.5"
 env_logger = "0.11.11"
@@ -16,3 +16,6 @@ vigem-client = { version = "0.1.4", features = ["unstable_xtarget_notification"]
 [[bin]]
 name = "PadConnectReceiver"
 path = "src/main.rs"
+
+[build-dependencies]
+embed-resource = "3.0.11"
