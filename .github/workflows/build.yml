@@ -21,10 +21,16 @@ jobs:
       uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
 
     - name: Build
-      run: cargo build --release
+      run: cargo install cargo-packager && cargo packager --release
 
-    - name: Upload Artifact
+    - name: Upload Build
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
       with:
         name: PadConnectReceiver-windows-x86_64
         path: target/release/PadConnectReceiver.exe
+
+    - name: Upload Installer
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      with:
+        name: PadConnectReceiver-windows-installer-x86_64
+        path: target/release/PadConnectReceiver_*.exe
