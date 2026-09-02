@@ -3212,7 +3212,7 @@ dependencies = [
 
 [[package]]
 name = "padconnect-receiver"
-version = "1.0.0"
+version = "1.0.0-rc1"
 dependencies = [
  "byteorder",
  "crossbeam-channel",
