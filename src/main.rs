@@ -111,6 +111,11 @@ slint::slint! {
 }
 
 fn main() -> Result<(), slint::PlatformError> {
+    // set to trace level as we already do compile time filtering so we want to see all logs in the console
+    env_logger::Builder::new()
+        .filter_level(log::LevelFilter::Trace)
+        .init();
+
     let ui = ReceiverScreen::new()?;
     let ui_handle = ui.as_weak();
 

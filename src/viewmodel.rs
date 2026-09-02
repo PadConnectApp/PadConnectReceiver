@@ -8,6 +8,8 @@ use crate::input::xinput::{InputExecutor, XInputExecutor};
 use crate::utils::network::{DiscoveryServer, UdpReceiver};
 use crate::data::GamepadState;
 
+use log::{info};
+
 pub struct ReceiverViewModel {
     discovery: Arc<DiscoveryServer>,
     receiver: Arc<UdpReceiver>,
@@ -33,6 +35,13 @@ impl ReceiverViewModel {
             panic!("Linux executor not implemented in this snippet");
         }));
 
+        let receiver_rumble = Arc::clone(&receiver);
+        if let Ok(mut guard) = executor.lock() {
+            guard.set_rumble_callback(Box::new(move |large, small| {
+                receiver_rumble.on_rumble(large, small);
+            }));
+        }
+
         let is_receiving = Arc::new(AtomicBool::new(false));
         let last_receive_time = Arc::new(AtomicU64::new(0));
 
@@ -52,7 +61,7 @@ impl ReceiverViewModel {
             if !is_rec_clone.load(Ordering::SeqCst) {
                 is_rec_clone.store(true, Ordering::SeqCst);
                 disc_clone.stop();
-                println!("PadConnect connected!");
+                info!("PadConnect connected!");
             }
 
             if let Ok(mut guard) = executor_clone.lock() {
@@ -64,7 +73,7 @@ impl ReceiverViewModel {
 
         discovery.start(move |features| {
             receiver_clone.set_enabled_features(features);
-            println!("Discovery Agreed features: {}", features);
+            info!("Discovery Agreed features: {}", features);
         });
 
         let vm = Self { discovery, receiver, is_receiving, last_receive_time };
@@ -89,12 +98,12 @@ impl ReceiverViewModel {
 
                 if is_receiving.load(Ordering::SeqCst) && (current_time.saturating_sub(last) > 2000) {
                     is_receiving.store(false, Ordering::SeqCst);
-                    println!("PadConnect disconnected. Restarting discovery server.");
+                    info!("PadConnect disconnected. Restarting discovery server.");
                     on_ui_update(GamepadState::default(), false);
                     let rec_feat = Arc::clone(&receiver_clone);
                     discovery.start(move |features| {
                         rec_feat.set_enabled_features(features);
-                        println!("Discovery agreed features: {}", features);
+                        info!("Discovery agreed features: {}", features);
                     });
                 }
             }

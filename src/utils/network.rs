@@ -140,6 +140,19 @@ impl UdpReceiver {
 
         let _ = socket.send_to(&response, target);
     }
+
+    pub fn on_rumble(&self, large: u8, small: u8) {
+        if !self.is_rumble_enabled.load(Ordering::SeqCst) {
+            return;
+        }
+
+        if let Some(target) = *self.current_sender.lock().unwrap() {
+            if let Some(socket) = self.socket.lock().unwrap().as_ref() {
+                let packet = [1u8, large, small];
+                let _ = socket.send_to(&packet, target);
+            }
+        }
+    }
     
     pub fn stop(&self) {
         self.is_running.store(false, Ordering::SeqCst);

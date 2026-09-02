@@ -1,4 +1,5 @@
 use crate::data::GamepadState;
+use log::{warn, debug, trace};
 
 pub trait InputExecutor: Send {
     fn submit(&mut self, state: &GamepadState);
@@ -50,6 +51,17 @@ impl InputExecutor for XInputExecutor {
     }
 
     fn set_rumble_callback(&mut self, callback: Box<dyn Fn(u8, u8) + Send>) {
-        // TODO: Implement rumble callback handling
+        match self.target.request_notification() {
+            Ok(notification) => {
+                debug!("Rumble notification thread registered");
+                notification.spawn_thread(move |_notif, data| {
+                    trace!("Rumble: large={} small={}", data.large_motor, data.small_motor);
+                    callback(data.large_motor, data.small_motor);
+                });
+            }
+            Err(e) => {
+                warn!("Failed to request rumble notification: {:?}", e);
+            }
+        }
     }
 }

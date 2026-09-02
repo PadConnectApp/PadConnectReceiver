@@ -7,6 +7,8 @@ edition = "2024"
 slint = "1.9"
 byteorder = "1.5"
 crossbeam-channel = "0.5"
+env_logger = "0.11.11"
+log = { version = "0.4", features = ["max_level_debug", "release_max_level_info"] }
 
 [target.'cfg(target_os = "windows")'.dependencies]
-vigem-client = "0.1.4"
+vigem-client = { version = "0.1.4", features = ["unstable_xtarget_notification"] }
