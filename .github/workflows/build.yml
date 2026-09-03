@@ -43,6 +43,13 @@ jobs:
     - name: Setup Cache
       uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
 
+    - name: Install system dependencies
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y pkg-config libfontconfig1-dev
+
+
     - name: Build
       run: cargo install cargo-packager && cargo packager --release
 
