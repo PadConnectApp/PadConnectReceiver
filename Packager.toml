@@ -2,7 +2,6 @@ name = "padconnect-receiver"
 product-name = "PadConnectReceiver"
 identifier = "io.github.padconnectreceiver"
 version = "1.0.0-rc1"
-formats = ["nsis", "appimage"]
 binaries = [
   { path = "PadConnectReceiver", main = true }
 ]

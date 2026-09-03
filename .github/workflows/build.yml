@@ -13,21 +13,25 @@ jobs:
         include:
           - os: windows-latest
             name: windows-x64
+            formats: nsis
             artifact: PadConnectReceiver-windows-x86_64
             path: target/release/PadConnectReceiver_*.exe
 
           - os: windows-11-arm
             name: windows-arm64
+            formats: nsis
             artifact: PadConnectReceiver-windows-arm64
             path: target/release/PadConnectReceiver_*.exe
 
           - os: ubuntu-latest
             name: linux-x64
+            formats: appimage
             artifact: PadConnectReceiver-linux-x86_64
             path: target/release/PadConnectReceiver_*.AppImage
 
           - os: ubuntu-24.04-arm
             name: linux-arm64
+            formats: appimage
             artifact: PadConnectReceiver-linux-arm64
             path: target/release/PadConnectReceiver_*.AppImage
 
@@ -51,7 +55,7 @@ jobs:
 
 
     - name: Build
-      run: cargo install cargo-packager && cargo packager --release
+      run: cargo install cargo-packager && cargo packager --release --formats ${{ matrix.formats }}
 
     - name: Upload Build
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
