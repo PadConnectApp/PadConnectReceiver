@@ -12,7 +12,10 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use std::thread;
 use std::time::Duration;
 
-use crate::input::xinput::{InputExecutor, XInputExecutor};
+use crate::input::xinput::InputExecutor;
+#[cfg(target_os = "windows")]
+use crate::input::xinput::XInputExecutor;
+
 use crate::utils::network::{DiscoveryServer, UdpReceiver};
 use crate::data::GamepadState;
 
@@ -37,11 +40,13 @@ impl ReceiverViewModel {
 
         let receiver_clone = Arc::clone(&receiver);
         
-        let executor = Arc::new(Mutex::new(if cfg!(target_os = "windows") {
+        #[cfg(target_os = "windows")]
+        let executor: Arc<Mutex<Box<dyn InputExecutor>>> = Arc::new(Mutex::new(
             Box::new(XInputExecutor::new().expect("ViGEm failed"))
-        } else {
-            panic!("Linux executor not implemented in this snippet");
-        }));
+        ));
+
+        #[cfg(not(target_os = "windows"))]
+        let executor: Arc<Mutex<Box<dyn InputExecutor>>> = unimplemented!("Linux executor is not implemented yet");
 
         let receiver_rumble = Arc::clone(&receiver);
         if let Ok(mut guard) = executor.lock() {
