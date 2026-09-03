@@ -8,6 +8,10 @@ binaries = [
 out-dir = "target/release"
 before-packaging-command = "cargo build --release"
 
+icons = [
+  "icons/128x128.png"
+]
+
 [nsis]
 installerIcon = "icons/icon.ico"
 installMode = "perMachine"
