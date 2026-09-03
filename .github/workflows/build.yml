@@ -8,8 +8,31 @@ on:
 
 jobs:
   build:
-    name: Build
-    runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            name: windows-x64
+            artifact: PadConnectReceiver-windows-x86_64
+            path: target/release/PadConnectReceiver_*.exe
+
+          - os: windows-11-arm
+            name: windows-arm64
+            artifact: PadConnectReceiver-windows-arm64
+            path: target/release/PadConnectReceiver_*.exe
+
+          - os: ubuntu-latest
+            name: linux-x64
+            artifact: PadConnectReceiver-linux-x86_64
+            path: target/release/PadConnectReceiver_*.AppImage
+
+          - os: ubuntu-24.04-arm
+            name: linux-arm64
+            artifact: PadConnectReceiver-linux-arm64
+            path: target/release/PadConnectReceiver_*.AppImage
+
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -26,11 +49,5 @@ jobs:
     - name: Upload Build
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
       with:
-        name: PadConnectReceiver-windows-x86_64
-        path: target/release/PadConnectReceiver.exe
-
-    - name: Upload Installer
-      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-      with:
-        name: PadConnectReceiver-windows-installer-x86_64
-        path: target/release/PadConnectReceiver_*.exe
+        name: ${{ matrix.artifact }}
+        path: ${{ matrix.path }}
