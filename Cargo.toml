@@ -15,6 +15,7 @@ vigem-client = { version = "0.1.4", features = ["unstable_xtarget_notification"]
 
 [target.'cfg(target_os = "linux")'.dependencies]
 evdev = "0.12"
+libc = "0.2"
 
 [[bin]]
 name = "PadConnectReceiver"

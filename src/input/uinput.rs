@@ -1,7 +1,7 @@
 #[cfg(target_os = "linux")]
 use evdev::{
-    uinput::{VirtualDevice, VirtualDeviceBuilder, UinputAbsSetup},
-    AbsInfo, AbsoluteAxisType, AttributeSet, EventType, InputEvent, Key,
+    uinput::{VirtualDevice, VirtualDeviceBuilder},
+    AbsInfo, AbsoluteAxisType, AttributeSet, EventType, InputEvent, Key, UinputAbsSetup,
 };
 #[cfg(target_os = "linux")]
 use std::os::fd::AsRawFd;
@@ -11,6 +11,12 @@ use std::thread;
 use std::sync::{Arc, Mutex};
 #[cfg(target_os = "linux")]
 use libc;
+#[cfg(target_os = "linux")]
+use crate::input::xinput::InputExecutor;
+#[cfg(target_os = "linux")]
+use crate::data::GamepadState;
+#[cfg(target_os = "linux")]
+use log::{debug, trace};
 
 #[cfg(target_os = "linux")]
 pub struct UinputExecutor {
@@ -39,14 +45,14 @@ impl UinputExecutor {
         let device = VirtualDeviceBuilder::new()?
             .name("PadConnect")
             .with_keys(&keys)?
-            .with_absolute_axis(&UinputAbsSetup::new(AbsoluteAxisType::ABS_X, AbsInfo::new(0, -32768, 32767, 16, 128)))?
-            .with_absolute_axis(&UinputAbsSetup::new(AbsoluteAxisType::ABS_Y, AbsInfo::new(0, -32768, 32767, 16, 128)))?
-            .with_absolute_axis(&UinputAbsSetup::new(AbsoluteAxisType::ABS_RX, AbsInfo::new(0, -32768, 32767, 16, 128)))?
-            .with_absolute_axis(&UinputAbsSetup::new(AbsoluteAxisType::ABS_RY, AbsInfo::new(0, -32768, 32767, 16, 128)))?
-            .with_absolute_axis(&UinputAbsSetup::new(AbsoluteAxisType::ABS_Z, AbsInfo::new(0, 0, 255, 0, 0)))? // LT
-            .with_absolute_axis(&UinputAbsSetup::new(AbsoluteAxisType::ABS_RZ, AbsInfo::new(0, 0, 255, 0, 0)))? // RT
-            .with_absolute_axis(&UinputAbsSetup::new(AbsoluteAxisType::ABS_HAT0X, AbsInfo::new(0, -1, 1, 0, 0)))? // D-Pad X
-            .with_absolute_axis(&UinputAbsSetup::new(AbsoluteAxisType::ABS_HAT0Y, AbsInfo::new(0, -1, 1, 0, 0)))? // D-Pad Y
+            .with_absolute_axis(&UinputAbsSetup::new(AbsoluteAxisType::ABS_X, AbsInfo::new(0, -32768, 32767, 16, 128, 0)))?
+            .with_absolute_axis(&UinputAbsSetup::new(AbsoluteAxisType::ABS_Y, AbsInfo::new(0, -32768, 32767, 16, 128, 0)))?
+            .with_absolute_axis(&UinputAbsSetup::new(AbsoluteAxisType::ABS_RX, AbsInfo::new(0, -32768, 32767, 16, 128, 0)))?
+            .with_absolute_axis(&UinputAbsSetup::new(AbsoluteAxisType::ABS_RY, AbsInfo::new(0, -32768, 32767, 16, 128, 0)))?
+            .with_absolute_axis(&UinputAbsSetup::new(AbsoluteAxisType::ABS_Z, AbsInfo::new(0, 0, 255, 0, 0, 0)))? // LT
+            .with_absolute_axis(&UinputAbsSetup::new(AbsoluteAxisType::ABS_RZ, AbsInfo::new(0, 0, 255, 0, 0, 0)))? // RT
+            .with_absolute_axis(&UinputAbsSetup::new(AbsoluteAxisType::ABS_HAT0X, AbsInfo::new(0, -1, 1, 0, 0, 0)))? // D-Pad X
+            .with_absolute_axis(&UinputAbsSetup::new(AbsoluteAxisType::ABS_HAT0Y, AbsInfo::new(0, -1, 1, 0, 0, 0)))? // D-Pad Y
             .build()?;
 
         Ok(Self {
