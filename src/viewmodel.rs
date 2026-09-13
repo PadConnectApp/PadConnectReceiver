@@ -16,6 +16,9 @@ use crate::input::xinput::InputExecutor;
 #[cfg(target_os = "windows")]
 use crate::input::xinput::XInputExecutor;
 
+#[cfg(not(target_os = "windows"))]
+use crate::input::uinput::UinputExecutor;
+
 use crate::utils::network::{DiscoveryServer, UdpReceiver};
 use crate::data::GamepadState;
 
@@ -46,7 +49,9 @@ impl ReceiverViewModel {
         ));
 
         #[cfg(not(target_os = "windows"))]
-        let executor: Arc<Mutex<Box<dyn InputExecutor>>> = unimplemented!("Linux executor is not implemented yet");
+        let executor: Arc<Mutex<Box<dyn InputExecutor>>> = Arc::new(Mutex::new(
+            Box::new(UinputExecutor::new().expect("Failed to create uinput device"))
+        ));
 
         let receiver_rumble = Arc::clone(&receiver);
         if let Ok(mut guard) = executor.lock() {

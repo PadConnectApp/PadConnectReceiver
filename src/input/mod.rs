@@ -7,3 +7,4 @@
  */
 
 pub mod xinput;
+pub mod uinput;
