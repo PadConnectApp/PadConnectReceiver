@@ -13,8 +13,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use std::io::Cursor;
 use crate::data::GamepadState;
+use log::error;
 
-pub const MIN_SUPPORTED_VERSION: i32 = 2;
+pub const SUPPORTED_VERSION: i32 = 2;
 pub const FEATURE_RUMBLE: i32 = 1 << 0;
 pub const FEATURE_LATENCY: i32 = 1 << 1;
 
@@ -45,14 +46,17 @@ impl DiscoveryServer {
                         let client_version = parts.get(1).and_then(|s| s.parse::<i32>().ok()).unwrap_or(1);
                         let client_features = parts.get(2).and_then(|s| s.parse::<i32>().ok()).unwrap_or(1);
 
-                        if client_version < MIN_SUPPORTED_VERSION {
-                            println!("App Update Required for client.");
+                        if client_version < SUPPORTED_VERSION {
+                            error!("App Update Required for client.");
                         }
 
-                        let agreed_version = client_version.min(MIN_SUPPORTED_VERSION);
+                        if client_version > SUPPORTED_VERSION {
+                            error!("Client is newer than receiver. Please update this receiver.");
+                        }
+
                         let agreed_features = client_features & (FEATURE_RUMBLE | FEATURE_LATENCY);
                         
-                        let response = format!("PADCONNECT_HERE:8082:{}:{}", agreed_version, agreed_features);
+                        let response = format!("PADCONNECT_HERE:8082:{}:{}", SUPPORTED_VERSION, agreed_features);
                         let _ = socket.send_to(response.as_bytes(), src);
                         
                         on_responded(agreed_features);
