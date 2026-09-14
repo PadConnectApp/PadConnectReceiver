@@ -15,7 +15,7 @@ use slint::ComponentHandle;
 use viewmodel::ReceiverViewModel;
 
 slint::slint! {
-    import { Button, VerticalBox, HorizontalBox } from "std-widgets.slint";
+    import { VerticalBox, HorizontalBox } from "std-widgets.slint";
 
     component DataCard inherits Rectangle {
         in property <string> title;
