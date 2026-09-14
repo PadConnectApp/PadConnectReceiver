@@ -29,7 +29,11 @@ impl DiscoveryServer {
         Self { port, is_running: Arc::new(AtomicBool::new(false)) }
     }
 
-    pub fn start(&self, on_responded: impl Fn(i32) + Send + 'static) {
+    pub fn start(
+        &self, 
+        on_responded: impl Fn(i32) + Send + 'static,
+        on_alert: impl Fn(String) + Send + 'static
+    ) {
         if self.is_running.swap(true, Ordering::SeqCst) { return; }
         
         let socket = UdpSocket::bind(("0.0.0.0", self.port)).unwrap();
@@ -48,10 +52,12 @@ impl DiscoveryServer {
 
                         if client_version < SUPPORTED_VERSION {
                             error!("App Update Required for client.");
+                            on_alert("Client app is outdated. Please update it.".to_string());
                         }
 
                         if client_version > SUPPORTED_VERSION {
                             error!("Client is newer than receiver. Please update this receiver.");
+                            on_alert("Client app is newer than receiver. Please update this receiver.".to_string());
                         }
 
                         let agreed_features = client_features & (FEATURE_RUMBLE | FEATURE_LATENCY);

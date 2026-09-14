@@ -32,11 +32,13 @@ pub struct ReceiverViewModel {
 }
 
 impl ReceiverViewModel {
-    pub fn new<F>(on_ui_update: F) -> Self 
+    pub fn new<F1, F2>(on_ui_update: F1, on_alert: F2) -> Self 
     where 
-        F: Fn(GamepadState, bool) + Send + Sync + 'static 
+        F1: Fn(GamepadState, bool) + Send + Sync + 'static,
+        F2: Fn(String) + Send + Sync + 'static,
     {
         let on_ui_update = Arc::new(on_ui_update);
+        let on_alert = Arc::new(on_alert);
 
         let discovery = Arc::new(DiscoveryServer::new(8083));
         let receiver = Arc::new(UdpReceiver::new(8082));
@@ -67,6 +69,7 @@ impl ReceiverViewModel {
         let time_clone = Arc::clone(&last_receive_time);
         let disc_clone = Arc::clone(&discovery);
         let ui_cb = Arc::clone(&on_ui_update);
+        let on_alert_cb = Arc::clone(&on_alert);
 
         let executor_clone = Arc::clone(&executor);
 
@@ -89,19 +92,25 @@ impl ReceiverViewModel {
             ui_cb(state, true);
         });
 
-        discovery.start(move |features| {
-            receiver_clone.set_enabled_features(features);
-            info!("Discovery Agreed features: {}", features);
-        });
+        discovery.start(
+            move |features| {
+                receiver_clone.set_enabled_features(features);
+                info!("Discovery Agreed features: {}", features);
+            },
+            move |alert_msg| {
+                on_alert_cb(alert_msg); 
+            }
+        );
 
         let vm = Self { discovery, receiver, is_receiving, last_receive_time };
-        vm.start_connection_monitor(Arc::clone(&on_ui_update));
+        vm.start_connection_monitor(Arc::clone(&on_ui_update), Arc::clone(&on_alert));
         vm
     }
 
-    fn start_connection_monitor<F>(&self, on_ui_update: Arc<F>) 
+    fn start_connection_monitor<F1, F2>(&self, on_ui_update: Arc<F1>, on_alert: Arc<F2>) 
     where 
-        F: Fn(GamepadState, bool) + Send + Sync + 'static 
+        F1: Fn(GamepadState, bool) + Send + Sync + 'static,
+        F2: Fn(String) + Send + Sync + 'static,
     {
         let is_receiving = Arc::clone(&self.is_receiving);
         let last_time = Arc::clone(&self.last_receive_time);
@@ -119,10 +128,16 @@ impl ReceiverViewModel {
                     info!("PadConnect disconnected. Restarting discovery server.");
                     on_ui_update(GamepadState::default(), false);
                     let rec_feat = Arc::clone(&receiver_clone);
-                    discovery.start(move |features| {
-                        rec_feat.set_enabled_features(features);
-                        info!("Discovery agreed features: {}", features);
-                    });
+                    let on_alert_cb = Arc::clone(&on_alert);
+                    discovery.start(
+                        move |features| {
+                            rec_feat.set_enabled_features(features);
+                            info!("Discovery agreed features: {}", features);
+                        },
+                        move |alert_msg| {
+                            on_alert_cb(alert_msg);
+                        }
+                    );
                 }
             }
         });
