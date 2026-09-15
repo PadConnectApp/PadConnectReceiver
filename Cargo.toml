@@ -14,7 +14,7 @@ log = { version = "0.4", features = ["max_level_debug", "release_max_level_info"
 vigem-client = { version = "0.1.4", features = ["unstable_xtarget_notification"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
-evdev = "0.12"
+evdev = "0.13"
 libc = "0.2"
 
 [[bin]]
