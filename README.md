@@ -4,7 +4,7 @@
 
 > **Desktop receiver for PadConnect** - turns UDP input from your phone into a real virtual gamepad
 
-PadConnectReceiver is the Desktop side companion to **[PadConnect](https://github.com/Ishan09811/PadConnect)**. It listens for low latency controller input streamed from the PadConnect Android app and exposes it to Desktop (and games) as a real virtual controller, using **ViGEm** on windows and native on linux.
+PadConnectReceiver is the Desktop side companion to **[PadConnect](https://github.com/Ishan09811/PadConnect)**. It listens for low latency controller input streamed from the PadConnect Android app and exposes it to Desktop (and games) as a real virtual controller, using **ViGEm** on windows and **uinput** on linux.
 
 This is one half of a two-part project:
 
@@ -30,7 +30,7 @@ Games see it as a *real* controller.
 
 - Low-latency **UDP** input receiving
 - **Xbox 360** virtual controller support (working) **DualShock4** support planned
-- Built with **Kotlin Multiplatform (KMP)**
+- Built with **Rust**
 - Works over local WiFi, no internet required
 - Pairs with the [PadConnect](https://github.com/Ishan09811/PadConnect) Android app
 
@@ -39,8 +39,7 @@ Games see it as a *real* controller.
 ## Requirements
 
 - Windows (10 / 11) / Linux
-- **ViGEmBus Driver** installed (only required for windows users)
-- JVM compatible environment (bundled with releases where applicable)
+- **ViGEmBus Driver** installed **(only required for windows users)**
 - The [PadConnect](https://github.com/Ishan09811/PadConnect) Android app running on the same local WiFi network
 
 ---
@@ -70,12 +69,24 @@ This starts listening for UDP input and creates a virtual controller.
 
 ---
 
+# Download
+You can download stable builds from the Releases tab, or you can download the latest build from the tables below.
+
+Development Builds:
+|Platform|ABI|Download|
+|--------|------------|--------|
+|Windows|x86_64|[Windows Executable](https://nightly.link/PadConnectApp/PadConnectReceiver/workflows/build/master/PadConnectReceiver-windows-x86_64.zip)|
+|Windows|arm64|[Windows Executable](https://nightly.link/PadConnectApp/PadConnectReceiver/workflows/build/master/PadConnectReceiver-windows-arm64.zip)|
+|Linux|x86_64|[Linux AppImage](https://nightly.link/PadConnectApp/PadConnectReceiver/workflows/build/master/PadConnectReceiver-linux-x86_64.zip)|
+|Linux|arm64|[Linux AppImage](https://nightly.link/PadConnectApp/PadConnectReceiver/workflows/build/master/PadConnectReceiver-linux-arm64.zip)|
+
 ## Supported Inputs
 
 - Buttons: A / B / X / Y
 - Shoulder buttons
 - Triggers
 - Analog Sticks
+- Dpad
 
 ## Notes
 
@@ -88,7 +99,6 @@ This starts listening for UDP input and creates a virtual controller.
 ## Credits
 
 - **ViGEm** — Virtual Gamepad Emulation Framework for windows support
-- Kotlin & Kotlin Multiplatform teams
 
 ---
 
