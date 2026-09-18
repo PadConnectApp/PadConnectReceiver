@@ -17,7 +17,7 @@ jobs:
             artifact: PadConnectReceiver-windows-x86_64
             path: target/release/PadConnectReceiver_*.exe
 
-          - os: windows-11-arm
+          - os: windows-latest-arm
             name: windows-arm64
             formats: nsis
             artifact: PadConnectReceiver-windows-arm64
@@ -29,7 +29,7 @@ jobs:
             artifact: PadConnectReceiver-linux-x86_64
             path: target/release/PadConnectReceiver_*.AppImage
 
-          - os: ubuntu-24.04-arm
+          - os: ubuntu-latest-arm
             name: linux-arm64
             formats: appimage
             artifact: PadConnectReceiver-linux-arm64
