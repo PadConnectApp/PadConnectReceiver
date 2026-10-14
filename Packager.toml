@@ -1,7 +1,7 @@
 name = "padconnect-receiver"
 product-name = "PadConnectReceiver"
 identifier = "io.github.padconnectreceiver"
-version = "1.0.0-rc1"
+version = "1.0.0"
 binaries = [
   { path = "PadConnectReceiver", main = true }
 ]
